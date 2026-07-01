@@ -77,3 +77,19 @@ export async function deleteNote(id: string) {
 
   revalidatePath("/", "layout")
 }
+
+export async function updateNotePosition(
+  noteId: string,
+  newPosition: number,
+): Promise<{ error?: string }> {
+  const supabase = await createServerSupabaseClient()
+
+  const { error } = await supabase
+    .from("note")
+    .update({ position: newPosition })
+    .eq("id", noteId)
+
+  if (error) return { error: error.message }
+  revalidatePath("/", "layout")
+  return {}
+}
