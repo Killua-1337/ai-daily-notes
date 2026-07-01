@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useFormStatus } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { updateNote, deleteNote } from "@/actions/notes"
-import type { Note } from "@/types"
+import { TagInput } from "@/components/tags/tag-input"
+import type { Note, Tag } from "@/types"
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -19,7 +20,24 @@ function SubmitButton() {
 
 export function NoteEditor({ note }: { note: Note }) {
   const [error, setError] = useState<string | null>(null)
+  const [tags, setTags] = useState<Tag[]>(
+    note.tags?.map((t: any) => (t.tag ? t.tag : t)) ?? [],
+  )
+  const [exporting, setExporting] = useState(false)
   const router = useRouter()
+
+  const handleExport = useCallback(async () => {
+    setExporting(true)
+    const res = await fetch(`/api/notes/${note.id}/export`)
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `${note.note_date}-${note.title}.md`
+    a.click()
+    URL.revokeObjectURL(url)
+    setExporting(false)
+  }, [note.id, note.note_date, note.title])
 
   async function handleSubmit(formData: FormData) {
     setError(null)
@@ -32,6 +50,9 @@ export function NoteEditor({ note }: { note: Note }) {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Редактировать</h2>
         <div className="flex gap-2">
+          <Button variant="secondary" size="sm" onClick={handleExport} disabled={exporting}>
+            {exporting ? "Скачивание..." : "MD"}
+          </Button>
           <form
             action={async () => {
               await deleteNote(note.id)
@@ -65,6 +86,7 @@ export function NoteEditor({ note }: { note: Note }) {
             defaultValue={note.content}
           />
         </div>
+        <TagInput noteId={note.id} tags={tags} onTagsChange={() => router.refresh()} />
         {error && <p className="text-sm text-red-500">{error}</p>}
         <div className="flex gap-2">
           <SubmitButton />

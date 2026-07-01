@@ -6,7 +6,7 @@ export interface Note {
   note_date: string
   created_at: string
   updated_at: string
-  tags?: Tag[]
+  tags?: { tag: Tag }[] | Tag[]
 }
 
 export interface Tag {

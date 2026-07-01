@@ -1,23 +1,26 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
-import type { Tag } from "@/types"
 
-export function SearchForm({ tags }: { tags: Tag[] }) {
+interface SearchFormProps {
+  currentTag?: string
+}
+
+export function SearchForm({ currentTag }: SearchFormProps) {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
-  const [selectedTag, setSelectedTag] = useState<string | null>(null)
-  const router = useRouter()
 
-  const search = useCallback(async (q: string) => {
+  const search = useCallback(async (q: string, tag?: string) => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/notes/search?q=${encodeURIComponent(q)}`)
+      const params = new URLSearchParams()
+      if (q.trim()) params.set("q", q.trim())
+      if (tag) params.set("tag", tag)
+      const res = await fetch(`/api/notes/search?${params.toString()}`)
       const data = await res.json()
       setResults(data)
     } finally {
@@ -27,7 +30,7 @@ export function SearchForm({ tags }: { tags: Tag[] }) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (query.trim()) search(query.trim())
+    search(query, currentTag)
   }
 
   return (
@@ -40,28 +43,10 @@ export function SearchForm({ tags }: { tags: Tag[] }) {
           onChange={(e) => setQuery(e.target.value)}
           className="flex-1"
         />
-        <Button type="submit" disabled={loading || !query.trim()}>
+        <Button type="submit" disabled={loading}>
           {loading ? "Поиск..." : "Найти"}
         </Button>
       </form>
-
-      {tags.length > 0 && (
-        <div className="flex gap-1 flex-wrap">
-          {tags.map((tag) => (
-            <button
-              key={tag.id}
-              onClick={() => setSelectedTag(selectedTag === tag.id ? null : tag.id)}
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${
-                selectedTag === tag.id
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-              }`}
-            >
-              {tag.name}
-            </button>
-          ))}
-        </div>
-      )}
 
       {results.length === 0 && query && !loading && (
         <p className="text-muted-foreground text-center py-8">
