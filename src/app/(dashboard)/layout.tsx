@@ -21,7 +21,7 @@ export default async function DashboardLayout({
       <Header userEmail={user.email ?? ""} />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-background via-background to-purple-50/50 dark:to-purple-950/30">
+        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-purple-200/50 dark:from-purple-800/30 via-background to-background">
           <div className="p-4 sm:p-6">
             <div className="max-w-4xl mx-auto space-y-6">
               <div className="flex justify-end">

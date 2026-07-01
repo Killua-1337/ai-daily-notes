@@ -13,8 +13,7 @@ interface DayNotesProps {
 export function DayNotes({ notes, filterTag }: DayNotesProps) {
   const router = useRouter()
   const [items, setItems] = useState(notes)
-  const [dragId, setDragId] = useState<string | null>(null)
-  const ghostRef = useRef<HTMLDivElement | null>(null)
+  const dragSource = useRef<string | null>(null)
 
   const filtered = filterTag
     ? items.filter((n) =>
@@ -24,36 +23,42 @@ export function DayNotes({ notes, filterTag }: DayNotesProps) {
 
   const handleDragStart = useCallback(
     (e: React.DragEvent, noteId: string) => {
-      setDragId(noteId)
+      dragSource.current = noteId
       e.dataTransfer.effectAllowed = "move"
       e.dataTransfer.setData("text/plain", noteId)
 
-      const el = e.currentTarget as HTMLElement
-      const rect = el.getBoundingClientRect()
-      const ghost = el.cloneNode(true) as HTMLDivElement
-      ghost.style.position = "absolute"
-      ghost.style.top = "-1000px"
-      ghost.style.left = "-1000px"
-      ghost.style.width = `${rect.width}px`
-      ghost.style.opacity = "0.9"
-      ghost.style.borderRadius = "8px"
-      ghost.style.boxShadow = "0 8px 24px rgba(0,0,0,0.15)"
-      ghost.style.transform = "rotate(2deg)"
-      ghost.style.pointerEvents = "none"
+      const card = e.currentTarget.querySelector('[data-card]') as HTMLElement | null
+      if (!card) return
+
+      const rect = card.getBoundingClientRect()
+      const ghost = document.createElement("div")
+      ghost.textContent = card.textContent
+      ghost.style.cssText = `
+        position: absolute; top: -1000px; left: -1000px;
+        width: ${rect.width}px; max-width: ${rect.width}px;
+        padding: ${getComputedStyle(card).padding};
+        background: var(--background, #fff);
+        color: var(--foreground, #000);
+        border-radius: 8px;
+        border: 1px solid var(--border, #ccc);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        font-family: system-ui, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        pointer-events: none;
+        transform: rotate(2deg);
+        opacity: 0.95;
+      `
       document.body.appendChild(ghost)
       e.dataTransfer.setDragImage(ghost, rect.width / 2, rect.height / 2)
-      ghostRef.current = ghost
+
+      setTimeout(() => ghost.remove(), 0)
     },
     [],
   )
-
-  const handleDragEnd = useCallback(() => {
-    if (ghostRef.current) {
-      ghostRef.current.remove()
-      ghostRef.current = null
-    }
-    setDragId(null)
-  }, [])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -72,7 +77,7 @@ export function DayNotes({ notes, filterTag }: DayNotesProps) {
       e.preventDefault()
       ;(e.currentTarget as HTMLElement).classList.remove("drag-over")
 
-      const sourceId = dragId
+      const sourceId = dragSource.current
       if (!sourceId || sourceId === targetId) return
 
       const newItems = [...items]
@@ -84,12 +89,12 @@ export function DayNotes({ notes, filterTag }: DayNotesProps) {
       newItems.splice(targetIdx, 0, moved)
 
       setItems(newItems)
-      setDragId(null)
+      dragSource.current = null
 
       await updateNotePosition(sourceId, targetIdx)
       router.refresh()
     },
-    [items, dragId, router],
+    [items, router],
   )
 
   if (filtered.length === 0 && filterTag) {
@@ -100,9 +105,7 @@ export function DayNotes({ notes, filterTag }: DayNotesProps) {
     )
   }
 
-  if (filtered.length === 0) {
-    return null
-  }
+  if (filtered.length === 0) return null
 
   return (
     <div className="relative">
@@ -114,7 +117,6 @@ export function DayNotes({ notes, filterTag }: DayNotesProps) {
             key={note.id}
             draggable
             onDragStart={(e) => handleDragStart(e, note.id)}
-            onDragEnd={handleDragEnd}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, note.id)}
@@ -124,11 +126,19 @@ export function DayNotes({ notes, filterTag }: DayNotesProps) {
               <div className="h-3 w-3 rounded-full border-2 border-primary bg-background shrink-0" />
             </div>
 
-            <Link href={`/notes/${note.id}`} className="flex-1 block" draggable={false}>
-              <div className="rounded-lg border p-4 hover:bg-accent transition-colors">
+            <Link
+              href={`/notes/${note.id}`}
+              className="flex-1 block"
+              draggable={false}
+              onClick={(e) => { if (dragSource.current) e.preventDefault() }}
+            >
+              <div
+                data-card
+                className="rounded-lg border p-4 hover:bg-accent transition-colors"
+              >
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="font-medium truncate">{note.title}</h3>
-                  <span className="text-xs text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-xs text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity select-none">
                     ⋮⋮
                   </span>
                 </div>
