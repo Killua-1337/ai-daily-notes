@@ -79,8 +79,8 @@ export default async function DayPage({
                   <span
                     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${
                       filterTag === tag.name
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                        ? "bg-purple-600 text-white"
+                        : "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800/60"
                     }`}
                   >
                     {tag.name}

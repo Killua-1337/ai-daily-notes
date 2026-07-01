@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { updateNotePosition } from "@/actions/notes"
@@ -14,6 +14,7 @@ export function DayNotes({ notes, filterTag }: DayNotesProps) {
   const router = useRouter()
   const [items, setItems] = useState(notes)
   const [dragId, setDragId] = useState<string | null>(null)
+  const ghostRef = useRef<HTMLDivElement | null>(null)
 
   const filtered = filterTag
     ? items.filter((n) =>
@@ -26,9 +27,33 @@ export function DayNotes({ notes, filterTag }: DayNotesProps) {
       setDragId(noteId)
       e.dataTransfer.effectAllowed = "move"
       e.dataTransfer.setData("text/plain", noteId)
+
+      const el = e.currentTarget as HTMLElement
+      const rect = el.getBoundingClientRect()
+      const ghost = el.cloneNode(true) as HTMLDivElement
+      ghost.style.position = "absolute"
+      ghost.style.top = "-1000px"
+      ghost.style.left = "-1000px"
+      ghost.style.width = `${rect.width}px`
+      ghost.style.opacity = "0.9"
+      ghost.style.borderRadius = "8px"
+      ghost.style.boxShadow = "0 8px 24px rgba(0,0,0,0.15)"
+      ghost.style.transform = "rotate(2deg)"
+      ghost.style.pointerEvents = "none"
+      document.body.appendChild(ghost)
+      e.dataTransfer.setDragImage(ghost, rect.width / 2, rect.height / 2)
+      ghostRef.current = ghost
     },
     [],
   )
+
+  const handleDragEnd = useCallback(() => {
+    if (ghostRef.current) {
+      ghostRef.current.remove()
+      ghostRef.current = null
+    }
+    setDragId(null)
+  }, [])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -81,7 +106,6 @@ export function DayNotes({ notes, filterTag }: DayNotesProps) {
 
   return (
     <div className="relative">
-      {/* Timeline line */}
       <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-border" />
 
       <div className="space-y-3">
@@ -90,29 +114,33 @@ export function DayNotes({ notes, filterTag }: DayNotesProps) {
             key={note.id}
             draggable
             onDragStart={(e) => handleDragStart(e, note.id)}
+            onDragEnd={handleDragEnd}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, note.id)}
-            className="note-card relative flex gap-4 cursor-grab active:cursor-grabbing"
+            className="note-card relative flex gap-4 cursor-grab active:cursor-grabbing group"
           >
-            {/* Timeline dot */}
             <div className="flex flex-col items-center pt-5">
               <div className="h-3 w-3 rounded-full border-2 border-primary bg-background shrink-0" />
             </div>
 
-            {/* Card */}
-            <Link href={`/notes/${note.id}`} className="flex-1 block">
+            <Link href={`/notes/${note.id}`} className="flex-1 block" draggable={false}>
               <div className="rounded-lg border p-4 hover:bg-accent transition-colors">
-                <h3 className="font-medium">{note.title}</h3>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-medium truncate">{note.title}</h3>
+                  <span className="text-xs text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    ⋮⋮
+                  </span>
+                </div>
                 <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                  {note.content}
+                  {note.content || <span className="italic">Пустая заметка</span>}
                 </p>
                 {note.tags && note.tags.length > 0 && (
                   <div className="flex gap-1 mt-2 flex-wrap">
                     {note.tags.map((nt: any) => (
                       <span
                         key={nt.tag.id}
-                        className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground"
+                        className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300"
                       >
                         {nt.tag.name}
                       </span>
