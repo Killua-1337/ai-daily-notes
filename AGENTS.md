@@ -1,84 +1,127 @@
 # AI Agents Configuration
 
-## Project: Smart Requirements Tracker
+## Project: AI Daily Notes
+
+### Цель проекта
+Создать рабочее веб-приложение — онлайн-ежедневник для заметок с помощью AI-агентов.
+
+**Главная цель обучения:** Освоить процесс разработки с AI-агентами (оркестрация).
+**AI-функции внутри проекта:** Одна простая функция (авто-тегирование или суммаризация) — для практики интеграции.
+
+---
 
 ### Agent Roles
 
 #### 1. Business Analyst Agent
-**Responsibilities:**
-- Gather requirements through interviews
-- Create user stories and acceptance criteria
-- Define domain model
-- Identify constraints and risks
+**Ответственность:**
+- Собирать требования через интервью
+- Создавать пользовательские истории
+- Определять доменную модель
+- Формулировать критерии приёмки
 
-**Output Format:** Markdown documents in `artifacts/requirements/`
+**Формат вывода:** Markdown в `artifacts/requirements/`
 
 ---
 
 #### 2. Architect Agent
-**Responsibilities:**
-- Analyze requirements
-- Propose architecture options (2-3 variants)
-- Define tech stack
-- Create system diagrams
-- Document architectural decisions (ADR)
+**Ответственность:**
+- Анализировать требования
+- Предлагать варианты архитектуры (2-3)
+- Определять технологический стек
+- Создавать диаграммы системы
+- Документировать архитектурные решения (ADR)
 
-**Output Format:** Markdown documents in `artifacts/design/` and `artifacts/decisions/`
+**Формат вывода:** Markdown в `artifacts/design/` и `artifacts/decisions/`
 
 ---
 
 #### 3. Developer Agents
 
 **3.1 Frontend Developer**
-- Implement UI/UX
-- Create responsive layouts
-- Integrate with backend APIs
+- Реализовывать UI/UX
+- Создавать адаптивные интерфейсы
+- Интегрировать с API
 
 **3.2 Backend Developer**
-- Implement API endpoints
-- Business logic
-- Database integration
+- Реализовывать API endpoints
+- Бизнес-логика
+- Интеграция с базой данных
 
 **3.3 Database Developer**
-- Design schema
-- Write migrations
-- Optimize queries
+- Проектировать схему БД
+- Писать миграции
+- Оптимизировать запросы
 
-**Output:** Code in repository
+**Вывод:** Код в репозитории
 
 ---
 
 #### 4. QA Agent
-**Responsibilities:**
-- Create test plan
-- Generate test cases
-- Run automated tests
-- Document bugs
-- Provide test reports
+**Ответственность:**
+- Создавать тест-план
+- Генерировать тест-кейсы
+- Запускать автоматические тесты
+- Документировать баги
+- Предоставлять отчёты о тестировании
 
-**Output Format:** Markdown documents in `artifacts/test-reports/`
+**Формат вывода:** Markdown в `artifacts/test-reports/`
 
 ---
 
 #### 5. DevOps Agent
-**Responsibilities:**
-- Setup CI/CD
-- Configure deployment
-- Monitor infrastructure
-- Create rollback plans
+**Ответственность:**
+- Настраивать CI/CD
+- Конфигурировать деплой
+- Мониторить инфраструктуру
+- Создавать планы отката
 
-**Output Format:** Markdown documents in `artifacts/deployment/`
+**Формат вывода:** Markdown в `artifacts/deployment/`
 
 ---
 
 ## Communication Protocol
 
-### How to invoke agents:
+### Как вызывать агентов:
 
-1. **Requirements phase:** Use Business Analyst Agent
-2. **Design phase:** Use Architect Agent
-3. **Implementation:** Use Developer Agents
-4. **Testing:** Use QA Agent
-5. **Deployment:** Use DevOps Agent
+1. **Фаза Requirements:** Business Analyst Agent
+2. **Фаза Design:** Architect Agent
+3. **Фаза Implementation:** Developer Agents
+4. **Фаза Testing:** QA Agent
+5. **Фаза Deployment:** DevOps Agent
 
-### Response format for all agents:
+### Формат ответа для всех агентов:
+1. Резюме
+Краткое описание того, что сделано
+2. Детали
+Подробное объяснение
+3.Созданные артефакты
+path/to/file.md
+4.Вопросы к человеку (если есть)
+Любые уточнения, которые нужны
+5.Следующие шаги
+Что должно быть сделано дальше
+
+
+
+## Project Context
+
+**Домен:** Управление личными заметками  
+**Цель:** Онлайн-ежедневник для ведения заметок  
+**MVP функции:**
+- Регистрация / вход (логин-пароль)
+- CRUD заметок (создать, прочитать, обновить, удалить)
+- Поиск по тексту
+- Теги (ручные + AI)
+- Одна AI-функция (авто-тегирование или суммаризация)
+- Экспорт в Markdown
+
+**Технологический стек:** Next.js + Supabase + OpenAI API + Vercel
+
+---
+
+## Принципы работы
+
+1. **Один человек = команда:** Product Owner (Вадим) управляет AI-агентами
+2. **Артефакт-ориентированность:** Каждый этап создаёт документ, который проверяется перед переходом к следующему
+3. **Итеративность:** Разработка идёт волнами (не всё сразу)
+4. **Простота MVP:** Минимум функций, но рабочие
